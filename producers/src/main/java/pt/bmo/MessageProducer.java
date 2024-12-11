@@ -56,10 +56,21 @@ public class MessageProducer {
         kafkaProducer.send(producerRecord, callback);
     }
 
+    public void close(){
+        kafkaProducer.close();
+    }
+
     public static void main(String[] args) throws InterruptedException {
         MessageProducer messageProducer = new MessageProducer(propertiesMap());
 //        messageProducer.publishMsgSync(null, "ALO");
-        messageProducer.publishMsgAsync(null, "TST-ASYNC");
+        messageProducer.publishMsgSync("1", "ALO1");
+        messageProducer.publishMsgSync(null, "ALO14");
+        messageProducer.publishMsgSync("3", "ALO13");
+        messageProducer.publishMsgSync("1", "ALO2");
+//        messageProducer.publishMsgAsync("1", "TST-ASYNC1");
+//        messageProducer.publishMsgAsync("2", "TST-ASYNC2");
+//        messageProducer.publishMsgAsync(null, "TST-ASYNC3");
+//        messageProducer.publishMsgAsync("1", "TST-ASYNC4");
         Thread.sleep(5000);
     }
 }
