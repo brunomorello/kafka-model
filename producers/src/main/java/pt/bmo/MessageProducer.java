@@ -1,5 +1,6 @@
 package pt.bmo;
 
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 public class MessageProducer {
@@ -42,8 +44,22 @@ public class MessageProducer {
         }
     }
 
-    public static void main(String[] args) {
+    public void publishMsgAsync(final String key, final String value) {
+        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(TOPIC_NAME, key, value);
+        Callback callback = (recordMetadata, e) -> {
+            if (Objects.nonNull(e)) {
+                LOGGER.error("Exception during publish async: {}", e.getMessage());
+            } else {
+                LOGGER.info("Published message offset in callback is {} - on partition {}", recordMetadata.offset(), recordMetadata.partition());
+            }
+        };
+        kafkaProducer.send(producerRecord, callback);
+    }
+
+    public static void main(String[] args) throws InterruptedException {
         MessageProducer messageProducer = new MessageProducer(propertiesMap());
-        messageProducer.publishMsgSync(null, "ALO");
+//        messageProducer.publishMsgSync(null, "ALO");
+        messageProducer.publishMsgAsync(null, "TST-ASYNC");
+        Thread.sleep(5000);
     }
 }
