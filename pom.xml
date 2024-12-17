@@ -10,6 +10,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>producers</module>
+        <module>consumers</module>
+        <module>consumers</module>
     </modules>
 
     <properties>
