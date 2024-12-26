@@ -44,8 +44,15 @@ public class MessageConsumerManualSyncCommit {
                 ConsumerRecords<String, String> records = kafkaConsumer.poll(timeoutDuration);
                 records.forEach(record -> LOGGER.info("Consuming record key: {} value: {} partition: {}", record.key(), record.value(), record.partition()));
                 if (!records.isEmpty()) {
-                    kafkaConsumer.commitSync();
-                    LOGGER.info("Offset commited");
+//                    kafkaConsumer.commitSync();
+//                    LOGGER.info("Offset commited");
+                    kafkaConsumer.commitAsync((map, e) -> {
+                        if (e != null) {
+                            LOGGER.error("Exception during async commit: {}", e.getMessage());
+                        } else {
+                            LOGGER.info("Offset commited - map: {}", map);
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
