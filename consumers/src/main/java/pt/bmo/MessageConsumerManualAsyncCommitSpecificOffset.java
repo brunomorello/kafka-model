@@ -3,23 +3,26 @@ package pt.bmo;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MessageConsumerManualSyncCommit {
+public class MessageConsumerManualAsyncCommitSpecificOffset {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerManualSyncCommit.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerManualAsyncCommitSpecificOffset.class);
     private static final String TOPIC_NAME = "test-topic";
-
+    private Map<TopicPartition, OffsetAndMetadata> offsetAndMetadataMap = new HashMap<>();
     KafkaConsumer<String, String> kafkaConsumer;
 
-    public MessageConsumerManualSyncCommit() {
+    public MessageConsumerManualAsyncCommitSpecificOffset() {
         this.kafkaConsumer = new KafkaConsumer<>(buildPropertiesMap());
     }
 
@@ -42,10 +45,18 @@ public class MessageConsumerManualSyncCommit {
         try {
             while (true) {
                 ConsumerRecords<String, String> records = kafkaConsumer.poll(timeoutDuration);
-                records.forEach(record -> LOGGER.info("Consuming record key: {} value: {} partition: {}", record.key(), record.value(), record.partition()));
+                records.forEach(record -> {
+                    LOGGER.info("Consuming record key: {} value: {} partition: {} offset:{}", record.key(), record.value(), record.partition(), record.offset()+1);
+                    offsetAndMetadataMap.put(new TopicPartition(record.topic(), record.partition()), new OffsetAndMetadata(record.offset()+1));
+                });
                 if (!records.isEmpty()) {
-                    kafkaConsumer.commitSync();
-                    LOGGER.info("Offset commited");
+                    kafkaConsumer.commitAsync(offsetAndMetadataMap, (map, e) -> {
+                        if (e != null) {
+                            LOGGER.error("Exception during async commit: {}", e.getMessage());
+                        } else {
+                            LOGGER.info("Offset commited - map: {}", offsetAndMetadataMap);
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
@@ -56,7 +67,7 @@ public class MessageConsumerManualSyncCommit {
     }
 
     public static void main(String[] args) {
-        MessageConsumerManualSyncCommit messageConsumer = new MessageConsumerManualSyncCommit();
+        MessageConsumerManualAsyncCommitSpecificOffset messageConsumer = new MessageConsumerManualAsyncCommitSpecificOffset();
         messageConsumer.pollKafka();
     }
 }
