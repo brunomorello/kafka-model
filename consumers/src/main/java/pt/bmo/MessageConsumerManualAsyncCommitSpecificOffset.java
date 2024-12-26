@@ -8,6 +8,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.bmo.listeners.RebalancedListener;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -39,7 +40,7 @@ public class MessageConsumerManualAsyncCommitSpecificOffset {
     }
 
     public void pollKafka() {
-        kafkaConsumer.subscribe(List.of(TOPIC_NAME));
+        kafkaConsumer.subscribe(List.of(TOPIC_NAME), new RebalancedListener());
         Duration timeoutDuration = Duration.of(100, ChronoUnit.MILLIS);
 
         try {
