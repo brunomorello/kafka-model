@@ -40,7 +40,7 @@ public class MessageConsumerManualAsyncCommitSpecificOffset {
     }
 
     public void pollKafka() {
-        kafkaConsumer.subscribe(List.of(TOPIC_NAME), new RebalancedListener());
+        kafkaConsumer.subscribe(List.of(TOPIC_NAME), new RebalancedListener(kafkaConsumer));
         Duration timeoutDuration = Duration.of(100, ChronoUnit.MILLIS);
 
         try {
