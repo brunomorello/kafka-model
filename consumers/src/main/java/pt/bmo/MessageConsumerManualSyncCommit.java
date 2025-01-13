@@ -6,6 +6,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.bmo.listeners.RebalancedListener;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -36,7 +37,7 @@ public class MessageConsumerManualSyncCommit {
     }
 
     public void pollKafka() {
-        kafkaConsumer.subscribe(List.of(TOPIC_NAME));
+        kafkaConsumer.subscribe(List.of(TOPIC_NAME), new RebalancedListener(kafkaConsumer));
         Duration timeoutDuration = Duration.of(100, ChronoUnit.MILLIS);
 
         try {
