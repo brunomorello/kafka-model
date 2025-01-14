@@ -37,6 +37,7 @@ public class ItemProducer {
 
     public void publishMsgSync(final Item item) {
         ProducerRecord<Integer, Item> producerRecord = new ProducerRecord<>(TOPIC_NAME, item.getId(), item);
+        // or using Integer, String and serialize/deserialize the string to JSON
 
         try {
             RecordMetadata recordMetadata = kafkaProducer.send(producerRecord).get();
@@ -44,7 +45,7 @@ public class ItemProducer {
             LOGGER.info("partition: {} - offset: {}", recordMetadata.partition(), recordMetadata.offset());
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            LOGGER.error("error: {}", e.getMessage());
+            LOGGER.error("error: {}", e);
         }
     }
 
@@ -52,7 +53,7 @@ public class ItemProducer {
         ProducerRecord<Integer, Item> producerRecord = new ProducerRecord<>(TOPIC_NAME, item.getId(), item);
         Callback callback = (recordMetadata, e) -> {
             if (Objects.nonNull(e)) {
-                LOGGER.error("Exception during publish async: {}", e.getMessage());
+                LOGGER.error("Exception during publish async: {}", e);
             } else {
                 LOGGER.info("Published message offset in callback is {} - on partition {}", recordMetadata.offset(), recordMetadata.partition());
             }
